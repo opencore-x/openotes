@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { spawn } from 'child_process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const scriptsDir = join(__dirname, '..', 'scripts');
+
+const command = process.argv[2];
+const args = process.argv.slice(3);
+
+const commands = {
+  'setup': '../build/scripts/setup.js',
+  'health': 'health.mjs',
+  'status': '../build/scripts/status.js',
+  'test': '../build/scripts/test.js',
+  'uninstall': '../build/scripts/uninstall.js'
+};
+
+function showHelp() {
+  console.log(`
+openotes MCP Server - Markdown knowledge base for AI agents
+
+Usage: openotes <command> [options]
+
+Commands:
+  setup                Set up MCP server for Claude Code
+  health               Check server and configuration health
+  status               Check MCP integration status
+  test                 Test server functionality
+  uninstall            Remove MCP server registration
+
+Examples:
+  openotes setup       # Set up for the first time
+  openotes health      # Verify everything is working
+  openotes status      # Check Claude Code integration
+
+Setup Process:
+  1. Clone/download openotes-mcp-server
+  2. Run: npm install && npm run build
+  3. Run: npm link (to install globally)
+  4. Run: openotes setup
+  5. Restart Claude Code
+  6. Test with: openotes health
+`);
+}
+
+if (!command || command === 'help' || command === '--help' || command === '-h') {
+  showHelp();
+  process.exit(0);
+}
+
+const scriptFile = commands[command];
+if (!scriptFile) {
+  console.error(`Unknown command: ${command}`);
+  showHelp();
+  process.exit(1);
+}
+
+const scriptPath = join(scriptsDir, scriptFile);
+const child = spawn('node', [scriptPath, ...args], {
+  stdio: 'inherit',
+  cwd: process.cwd()
+});
+
+child.on('exit', (code) => {
+  process.exit(code || 0);
+});
