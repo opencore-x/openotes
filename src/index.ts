@@ -76,7 +76,6 @@ async function main() {
 
   const app = express();
   app.use(cors());
-  app.use(express.json());
 
   app.all('/mcp', async (req, res) => {
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
