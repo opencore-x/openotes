@@ -94,7 +94,13 @@ async function main() {
 
     if (req.method === 'GET') {
       if (!sessionId || !sessions.has(sessionId)) {
-        res.status(400).json({ error: 'Invalid or missing session ID for SSE' });
+        // Friendly response for browser visits
+        res.status(200).json({
+          name: 'openotes-server',
+          version: '1.0.0',
+          status: 'running',
+          message: 'MCP server is running. Connect with an MCP client like Claude Code.',
+        });
         return;
       }
       const session = sessions.get(sessionId)!;
