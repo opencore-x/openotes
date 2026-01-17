@@ -5,15 +5,15 @@ An MCP (Model Context Protocol) server that gives AI agents access to your markd
 ## Ideal Setup
 
 ```
-┌─────────────────┐     Cloudflare      ┌──────────────────┐
-│   Claude Code   │◄────Tunnel─────────►│   Mac Mini M4    │
-│   (anywhere)    │     (secure)        │   (home server)  │
-└─────────────────┘                     │                  │
-                                        │  openotes:3000   │
-                                        │  ┌────────────┐  │
-                                        │  │ Obsidian   │  │
-                                        │  │ Vault      │  │
-                                        │  └────────────┘  │
+┌─────────────────┐                     ┌──────────────────┐
+│  Claude.ai      │                     │   Mac Mini M4    │
+│  (web/mobile)   │                     │   (home server)  │
+├─────────────────┤     Cloudflare      │                  │
+│  Claude Code    │◄────Tunnel─────────►│  openotes:3000   │
+│  (CLI)          │     (secure)        │  ┌────────────┐  │
+├─────────────────┤                     │  │ Obsidian   │  │
+│  Claude Desktop │                     │  │ Vault      │  │
+└─────────────────┘                     │  └────────────┘  │
                                         └──────────────────┘
 ```
 
@@ -21,7 +21,8 @@ An MCP (Model Context Protocol) server that gives AI agents access to your markd
 - **Mac Mini M4** running 24/7 at home
 - **Obsidian vault** synced via iCloud
 - **Cloudflare Tunnel** for secure remote access
-- **Claude Code** as the AI client
+- **Claude.ai** web and mobile (iOS/Android) - *as of July 2025*
+- **Claude Code** or **Claude Desktop** as clients
 
 ## Features
 
@@ -138,6 +139,26 @@ cloudflared tunnel --config ~/.cloudflared/config-openotes.yml run
 2. Access → Applications → Add an application
 3. Select Self-hosted, enter your hostname
 4. Add authentication policy (email OTP recommended)
+
+## Connect Claude.ai (Web & Mobile)
+
+As of July 2025, Claude.ai supports remote MCP servers on web, iOS, and Android. [Learn more](https://support.claude.com/en/articles/11503834-building-custom-connectors-via-remote-mcp-servers)
+
+### Add Custom Connector
+
+1. Go to [claude.ai/settings/connectors](https://claude.ai/settings/connectors)
+2. Click **"Add custom connector"**
+3. Enter:
+   - **Name:** `openotes`
+   - **Remote MCP server URL:** `https://your-domain.com/mcp`
+4. Click **Add**
+5. Authenticate via Cloudflare Access (email OTP)
+
+### Use on Mobile
+
+Once added via claude.ai, the connector is automatically available in the Claude mobile app (iOS/Android). You cannot add new connectors directly from mobile - add them via web first.
+
+**Requirements:** Pro, Max, Team, or Enterprise plan
 
 ## Tool Reference
 
