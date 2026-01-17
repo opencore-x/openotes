@@ -1,10 +1,3 @@
-export interface openotesConfig {
-  notesDirectory: string;
-  maxSearchResults?: number;
-  defaultFilePattern?: string;
-  excludePatterns?: string[];
-}
-
 export interface FileMetadata {
   path: string;
   name: string;
@@ -42,7 +35,33 @@ export interface NoteSection {
   lineEnd: number;
 }
 
-export interface OrganizationStrategy {
-  type: 'byTopic' | 'byDate' | 'byTag' | 'custom';
-  criteria?: any;
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: 'object';
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
+}
+
+export interface ToolResponse {
+  content: Array<{
+    type: 'text';
+    text: string;
+  }>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ToolHandler = (args: any) => Promise<ToolResponse>;
+
+export interface EditArgs {
+  filepath: string;
+  old_content: string;
+  new_content: string;
+}
+
+export interface DeleteArgs {
+  filepath: string;
+  confirm: boolean;
 }

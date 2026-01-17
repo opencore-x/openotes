@@ -3,7 +3,6 @@ import { join, dirname, extname, basename } from 'path';
 import type { FileMetadata, DirectoryStructure } from '../types/index.js';
 
 export class FileOperations {
-  
   static async exists(path: string): Promise<boolean> {
     try {
       await fs.access(path);
@@ -18,7 +17,7 @@ export class FileOperations {
   }
 
   static async listMarkdownFiles(
-    rootDir: string, 
+    rootDir: string,
     pattern: string = '**/*.md',
     excludePatterns: string[] = []
   ): Promise<string[]> {
@@ -26,7 +25,7 @@ export class FileOperations {
     await this.walkDirectory(rootDir, (filePath) => {
       if (extname(filePath).toLowerCase() === '.md') {
         const relativePath = filePath.replace(rootDir, '').substring(1);
-        const shouldExclude = excludePatterns.some(pattern => 
+        const shouldExclude = excludePatterns.some((pattern) =>
           relativePath.includes(pattern.replace('**/', '').replace('/**', ''))
         );
         if (!shouldExclude) {
@@ -34,19 +33,22 @@ export class FileOperations {
         }
       }
     });
-    
+
     return files;
   }
 
-  private static async walkDirectory(dir: string, callback: (filePath: string) => void): Promise<void> {
+  private static async walkDirectory(
+    dir: string,
+    callback: (filePath: string) => void
+  ): Promise<void> {
     const items = await fs.readdir(dir);
-    
+
     for (const item of items) {
-      if (item.startsWith('.')) continue; // Skip hidden files
-      
+      if (item.startsWith('.')) continue;
+
       const itemPath = join(dir, item);
       const stats = await fs.stat(itemPath);
-      
+
       if (stats.isDirectory()) {
         await this.walkDirectory(itemPath, callback);
       } else {
@@ -57,14 +59,14 @@ export class FileOperations {
 
   static async getFileMetadata(filePath: string): Promise<FileMetadata> {
     const stats = await fs.stat(filePath);
-    
+
     return {
       path: filePath,
       name: basename(filePath),
       size: stats.size,
       createdAt: stats.birthtime,
       modifiedAt: stats.mtime,
-      isDirectory: stats.isDirectory()
+      isDirectory: stats.isDirectory(),
     };
   }
 
@@ -81,6 +83,21 @@ export class FileOperations {
     await fs.appendFile(filePath, content, 'utf-8');
   }
 
+  static async editFile(
+    filePath: string,
+    oldContent: string,
+    newContent: string
+  ): Promise<void> {
+    const content = await this.readFile(filePath);
+
+    if (!content.includes(oldContent)) {
+      throw new Error('old_content not found in file');
+    }
+
+    const updatedContent = content.replace(oldContent, newContent);
+    await fs.writeFile(filePath, updatedContent, 'utf-8');
+  }
+
   static async moveFile(source: string, destination: string): Promise<void> {
     await this.ensureDirectory(dirname(destination));
     await fs.rename(source, destination);
@@ -90,24 +107,26 @@ export class FileOperations {
     await fs.unlink(filePath);
   }
 
-  static async getDirectoryStructure(rootDir: string): Promise<DirectoryStructure> {
+  static async getDirectoryStructure(
+    rootDir: string
+  ): Promise<DirectoryStructure> {
     const stats = await fs.stat(rootDir);
     const name = basename(rootDir);
-    
+
     if (!stats.isDirectory()) {
       return {
         name,
         path: rootDir,
-        isDirectory: false
+        isDirectory: false,
       };
     }
 
     const children: DirectoryStructure[] = [];
     const items = await fs.readdir(rootDir);
-    
+
     for (const item of items) {
-      if (item.startsWith('.')) continue; // Skip hidden files
-      
+      if (item.startsWith('.')) continue;
+
       const itemPath = join(rootDir, item);
       const childStructure = await this.getDirectoryStructure(itemPath);
       children.push(childStructure);
@@ -118,25 +137,28 @@ export class FileOperations {
       path: rootDir,
       isDirectory: true,
       children: children.sort((a, b) => {
-        // Directories first, then files
         if (a.isDirectory && !b.isDirectory) return -1;
         if (!a.isDirectory && b.isDirectory) return 1;
         return a.name.localeCompare(b.name);
-      })
+      }),
     };
   }
 
-  static async readMultipleFiles(filePaths: string[]): Promise<{path: string, content: string}[]> {
+  static async readMultipleFiles(
+    filePaths: string[]
+  ): Promise<{ path: string; content: string }[]> {
     const results = await Promise.allSettled(
       filePaths.map(async (path) => ({
         path,
-        content: await this.readFile(path)
+        content: await this.readFile(path),
       }))
     );
 
     return results
-      .filter((result): result is PromiseFulfilledResult<{path: string, content: string}> => 
-        result.status === 'fulfilled')
-      .map(result => result.value);
+      .filter(
+        (result): result is PromiseFulfilledResult<{ path: string; content: string }> =>
+          result.status === 'fulfilled'
+      )
+      .map((result) => result.value);
   }
 }
