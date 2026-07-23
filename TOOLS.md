@@ -35,18 +35,19 @@ Full-text content search with relevance scoring.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `query` | string | Search query |
-| `max_results` | number | Optional. Max results (default: 50) |
+| `max_results` | number | Optional. Max results (default: `MAX_SEARCH_RESULTS`, 50) |
 
 ### `search_files`
 Search by filename pattern.
 
 ```json
-{ "query": "meeting" }
+{ "query": "meeting", "max_results": 20 }
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `query` | string | Filename search pattern |
+| `max_results` | number | Optional. Max results (default: `MAX_SEARCH_RESULTS`, 50) |
 
 ### `get_structure`
 Get directory tree of the vault.

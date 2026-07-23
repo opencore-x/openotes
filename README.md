@@ -42,6 +42,8 @@ See [TOOLS.md](./TOOLS.md) for the complete tool reference.
 
 ## Quick Start
 
+Requires Node.js 18+.
+
 ### 1. Install
 
 ```bash
@@ -60,23 +62,40 @@ Edit `.env`:
 ```env
 PORT=3000
 VAULT_PATH=/path/to/your/notes
+MAX_SEARCH_RESULTS=50
 ```
+
+`VAULT_PATH` is required and must point to an existing directory — `~` is expanded.
+`PORT` (3000) and `MAX_SEARCH_RESULTS` (50) are optional.
 
 ### 3. Run
 
 ```bash
-npm start
+npm start          # or: ./scripts/start.sh
 ```
+
+Verify it's up:
+
+```bash
+curl http://localhost:3000/mcp
+# {"name":"openotes-server","version":"1.0.0","status":"running", ...}
+```
+
+The server binds to `127.0.0.1` only — it is never exposed to your local network directly.
 
 ### 4. Connect Claude Code
 
-Add to your MCP settings (`~/.claude/settings.json`):
+```bash
+claude mcp add --transport http openotes http://localhost:3000/mcp
+```
+
+Or add it to a project's `.mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "openotes": {
-      "type": "streamableHttp",
+      "type": "http",
       "url": "http://localhost:3000/mcp"
     }
   }
@@ -88,6 +107,8 @@ That's it for local use. For remote access, keep reading.
 ## Remote Access
 
 To access your notes from anywhere (Claude.ai web, mobile app, laptop away from home), expose openotes through Cloudflare Tunnel.
+
+`./scripts/setup.sh` walks through steps 1–2 interactively (creates the tunnel, writes the config, routes DNS). The manual steps are below.
 
 ### 1. Create Tunnel
 
@@ -126,16 +147,9 @@ Add authentication via [Cloudflare Access](https://one.dash.cloudflare.com/):
 
 ### 5. Connect Remotely
 
-**Claude Code** - update your MCP settings:
-```json
-{
-  "mcpServers": {
-    "openotes": {
-      "type": "streamableHttp",
-      "url": "https://notes.yourdomain.com/mcp"
-    }
-  }
-}
+**Claude Code** - point it at the tunnel hostname instead of localhost:
+```bash
+claude mcp add --transport http openotes https://notes.yourdomain.com/mcp
 ```
 
 **Claude.ai (web/mobile)** - add as custom connector:
@@ -155,17 +169,20 @@ Once added on web, it works on the mobile app too.
 ## Development
 
 ```bash
-npm run dev      # Dev server with hot reload
-npm run build    # Build for production
+npm run dev      # Dev server with hot reload (tsx --watch)
+npm run build    # Compile TypeScript to build/
 npm start        # Run production server
-npm test         # Run tests
+npm run lint     # Lint src/
+npm run clean    # Remove build/
 ```
+
+`./scripts/start.sh --dev` runs the dev server after loading `.env` and checking the port is free.
 
 ## Project Structure
 
 ```
 src/
-├── index.ts           # HTTP server with Express
+├── index.ts           # Express server, Streamable HTTP transport, session handling
 ├── core/
 │   ├── config.ts      # Environment configuration
 │   ├── paths.ts       # Path security validation
@@ -179,6 +196,10 @@ src/
 │   └── utility.ts     # health
 └── types/
     └── index.ts       # TypeScript definitions
+
+scripts/
+├── setup.sh           # Interactive Cloudflare Tunnel setup
+└── start.sh           # Start server with .env loaded and port check
 ```
 
 ## License
